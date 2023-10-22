@@ -13,6 +13,20 @@ final class ViewController: UIViewController {
         super.viewDidLoad()
         // Do any additional setup after loading the view.
         view.backgroundColor = .systemPink
+        
+        
+        let url:URL = URL(string: "https://api.imgflip.com/get_memes")!
+        URLSession.shared.dataTask(with: url, completionHandler: { data, response, error in
+            guard
+                let data,
+                let response,
+                error == nil
+            else{
+                return
+            }
+            let str = String(data:data, encoding: .utf8)
+            print ("Полученные данные: \(str ?? "")")
+        }).resume()
     }
 
 
