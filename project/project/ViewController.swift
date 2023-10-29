@@ -7,31 +7,54 @@
 
 import UIKit
 
-final class ViewController: UIViewController {
+final class ViewController: UIViewController, UITableViewDataSource {
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        memesData.count
+    }
+    
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        let meme = memesData[indexPath.row]
+        var cell = UITableViewCell()
+        var configuration = cell.defaultContentConfiguration()
+        configuration.text = meme.name
+        configuration.secondaryText = String(meme.captions)
+        cell.contentConfiguration = configuration
+        return cell
+    }
+    
+    private lazy var tableView:UITableView = {
+        let tableView = UITableView()
+        tableView.backgroundColor = .cyan
+        tableView.dataSource = self
+        return tableView
+    }()
+    
+    private var memesData: [Meme] = [];
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        // Do any additional setup after loading the view.
         view.backgroundColor = .systemPink
         
+        tableView.translatesAutoresizingMaskIntoConstraints = false;
+        view.addSubview(tableView)
+        NSLayoutConstraint.activate([
+            tableView.leftAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leftAnchor),
+            tableView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+            tableView.rightAnchor.constraint(equalTo: view.safeAreaLayoutGuide.rightAnchor),
+            tableView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor)
+        ])
         
         let url:URL = URL(string: "https://api.imgflip.com/get_memes")!
-        URLSession.shared.dataTask(with: url) { data, response, error in
-            guard error == nil, let data = data else {
-                if let error = error {
-                    print("Ошибка при выполнении запроса: \(error)")
-                }
-                return
-            }
-
-            do {
-                let memesData = try JSONDecoder().decode(MemesData.self, from: data)
-                let memes = memesData.data.memes
-                print(memes)
-            } catch {
-                print("Ошибка при декодировании JSON: \(error)")
-            }
-        }.resume()
+        URLSession.shared.dataTask(with: url, completionHandler: { data, response, error in
+            guard let data = data, error == nil else { return }
+            let decoder = JSONDecoder()
+            decoder.keyDecodingStrategy = .convertFromSnakeCase
+            var memesData = try! decoder.decode(MemesData.self, from: data)
+            self.memesData = memesData.data.memes
+            DispatchQueue.main.async(execute: {
+                self.tableView.reloadData()
+            })
+        }).resume()
     }
 }
 
@@ -50,6 +73,6 @@ struct Meme: Codable {
     let url: String
     let width: Int
     let height: Int
-    let box_count: Int  // Используйте boxCount вместо "box_count"
+    let boxCount: Int  // Используйте boxCount вместо "box_count"
     let captions: Int
 }
