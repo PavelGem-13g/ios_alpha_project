@@ -57,22 +57,3 @@ final class ViewController: UIViewController, UITableViewDataSource {
         }).resume()
     }
 }
-
-struct MemesData: Codable {
-    let success: Bool
-    let data: Memes
-}
-
-struct Memes: Codable {
-    let memes: [Meme]
-}
-
-struct Meme: Codable {
-    let id: String
-    let name: String
-    let url: String
-    let width: Int
-    let height: Int
-    let boxCount: Int  // Используйте boxCount вместо "box_count"
-    let captions: Int
-}
